@@ -1,0 +1,46 @@
+{
+  "dataset": "NASA PCoE Li-ion Battery Aging (B0005, B0006, B0007, B0018)",
+  "task": "State-of-health regression (capacity / 2.0 Ah)",
+  "protocol": "leave-one-battery-out",
+  "features": [
+    "v_mean_ratio",
+    "v_end_ratio",
+    "t_mean_delta"
+  ],
+  "feature_note": "ratios/deltas vs the cell's own first discharge cycle, over the first 600 s of each discharge",
+  "per_cell": {
+    "B0005": {
+      "mae": 0.0447546436068008,
+      "rmse": 0.05128947773061777,
+      "dummy_mae": 0.08561280100347518,
+      "n_test": 168
+    },
+    "B0006": {
+      "mae": 0.058099495579255186,
+      "rmse": 0.0634558357996303,
+      "dummy_mae": 0.11348865149274483,
+      "n_test": 168
+    },
+    "B0007": {
+      "mae": 0.01792407836213017,
+      "rmse": 0.022639689617919623,
+      "dummy_mae": 0.07430491271850388,
+      "n_test": 168
+    },
+    "B0018": {
+      "mae": 0.04804700243726031,
+      "rmse": 0.05261080446956965,
+      "dummy_mae": 0.0703438834598684,
+      "n_test": 132
+    }
+  },
+  "mean_mae": 0.04220630499636162,
+  "mean_dummy_mae": 0.08593756216864808,
+  "beats_dummy": true,
+  "eol_cycle_per_cell": {
+    "B0005": 124,
+    "B0006": 108,
+    "B0007": -1,
+    "B0018": 96
+  }
+}

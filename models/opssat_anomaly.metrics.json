@@ -1,0 +1,106 @@
+{
+  "dataset": "OPSSAT-AD (ESA OPS-SAT), predefined train/test split",
+  "n_train": 1594,
+  "n_test": 529,
+  "anomaly_rate_test": 0.21361058601134217,
+  "features": [
+    "sampling",
+    "duration",
+    "len",
+    "mean",
+    "var",
+    "std",
+    "kurtosis",
+    "skew",
+    "n_peaks",
+    "smooth10_n_peaks",
+    "smooth20_n_peaks",
+    "diff_peaks",
+    "diff2_peaks",
+    "diff_var",
+    "diff2_var",
+    "gaps_squared",
+    "len_weighted",
+    "var_div_duration",
+    "var_div_len"
+  ],
+  "threshold": 0.5,
+  "model": {
+    "accuracy": 0.9565217391304348,
+    "balanced_accuracy": 0.9369043567052416,
+    "precision": 0.8947368421052632,
+    "recall": 0.9026548672566371,
+    "f1": 0.8986784140969163,
+    "roc_auc": 0.9902037950987066,
+    "confusion_matrix": [
+      [
+        404,
+        12
+      ],
+      [
+        11,
+        102
+      ]
+    ]
+  },
+  "dummy_most_frequent": {
+    "accuracy": 0.7863894139886578,
+    "balanced_accuracy": 0.5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": null,
+    "confusion_matrix": [
+      [
+        416,
+        0
+      ],
+      [
+        113,
+        0
+      ]
+    ]
+  },
+  "top_features": [
+    {
+      "feature": "n_peaks",
+      "importance": 0.23721358945182008
+    },
+    {
+      "feature": "diff2_peaks",
+      "importance": 0.10629650189957449
+    },
+    {
+      "feature": "smooth10_n_peaks",
+      "importance": 0.07864597085971414
+    },
+    {
+      "feature": "diff_peaks",
+      "importance": 0.06943516960940245
+    },
+    {
+      "feature": "kurtosis",
+      "importance": 0.06464563765434653
+    },
+    {
+      "feature": "len",
+      "importance": 0.055154187038570106
+    },
+    {
+      "feature": "gaps_squared",
+      "importance": 0.05130800216356674
+    },
+    {
+      "feature": "std",
+      "importance": 0.03968891476027692
+    },
+    {
+      "feature": "duration",
+      "importance": 0.036991729952907046
+    },
+    {
+      "feature": "diff2_var",
+      "importance": 0.035679420367139406
+    }
+  ]
+}
