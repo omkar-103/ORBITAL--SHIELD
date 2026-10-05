@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "vite",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "ml",
+          "format": "url",
+          "env": "ML_SERVICE_URL"
+        }
+      ]
+    },
+    "ml": {
+      "root": "ml",
+      "runtime": "python"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}
