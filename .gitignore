@@ -10,4 +10,5 @@ ml/data/
 models/*.joblib
 .venv/
 __pycache__/
+AI_HANDOFF_AND_BLUEPRINT.md
 
