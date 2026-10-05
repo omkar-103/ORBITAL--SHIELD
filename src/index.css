@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-space: #05070B;
+    --panel-base: #0B0F19;
+    --panel-elevated: #111726;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(6, 182, 212, 0.25);
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-space);
+    color: #e2e8f0;
+    overflow-x: hidden;
+  }
+
+  /* Monospace tabular numbers everywhere for telemetry */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .font-tech {
+    font-family: 'Chakra Petch', sans-serif;
+  }
+
+  .font-mono-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom aerospace scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080B12;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0284C7;
+}
+
+/* Subtle aerospace grid pattern */
+.bg-grid-aerospace {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.bg-radial-vignette {
+  background: radial-gradient(circle at 50% 30%, rgba(6, 182, 212, 0.08) 0%, rgba(5, 7, 11, 0) 70%);
+}
+
+/* Pulse animation for active telemetry packet */
+@keyframes signalPulse {
+  0% { opacity: 0.3; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0.3; transform: scale(0.98); }
+}
+
+.animate-signal-pulse {
+  animation: signalPulse 2.5s infinite ease-in-out;
+}
