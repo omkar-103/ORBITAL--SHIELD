@@ -15,7 +15,8 @@
     },
     "ml": {
       "root": "ml",
-      "runtime": "python"
+      "runtime": "python",
+      "entrypoint": "index.py"
     }
   },
   "rewrites": [
