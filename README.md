@@ -5,7 +5,7 @@
 **Core Challenge Reference**: ST-09 — Mission Digital Twin for Predictive Fault Simulation  
 **Platform Version**: 2026.4 Production Build  
 
-> **🤖 FOR AI AGENTS & DEVELOPERS**: Read [`/AI_HANDOFF_AND_BLUEPRINT.md`](./AI_HANDOFF_AND_BLUEPRINT.md) for the exhaustive file-by-file inventory, physics & AI architecture breakdown, Master Prompt gap analysis, and prioritized future implementation roadmap.
+> **🚀 DEPLOYMENT & DATABASE**: Read [`/DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) for full Vercel multi-services and Supabase PostgreSQL setup instructions.
 
 ---
 
