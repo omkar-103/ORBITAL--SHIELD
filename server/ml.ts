@@ -16,7 +16,19 @@ function readJson(name: string): any | null {
   }
 }
 
-export function getBenchmark() {
+export async function getBenchmark() {
+  if (process.env.ML_SERVICE_URL) {
+    try {
+      const targetUrl = new URL('benchmark', process.env.ML_SERVICE_URL.endsWith('/') ? process.env.ML_SERVICE_URL : `${process.env.ML_SERVICE_URL}/`);
+      const response = await fetch(targetUrl.toString());
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (err) {
+      console.warn('[ML Service] Could not fetch from bound ML_SERVICE_URL, using local fallback:', err);
+    }
+  }
+
   const battery = readJson('battery_soh.metrics.json');
   const batteryReplay = readJson('battery_replay.json');
   const opssat = readJson('opssat_anomaly.metrics.json');
