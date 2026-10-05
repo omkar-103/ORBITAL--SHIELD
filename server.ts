@@ -552,8 +552,8 @@ async function startServer() {
   });
 
   // Offline ML Benchmark Route (Models trained offline, served to Model Lab)
-  app.get('/api/ml/benchmark', (_req: Request, res: Response) => {
-    const benchmark = getBenchmark();
+  app.get('/api/ml/benchmark', async (_req: Request, res: Response) => {
+    const benchmark = await getBenchmark();
     res.json(benchmark);
   });
 
