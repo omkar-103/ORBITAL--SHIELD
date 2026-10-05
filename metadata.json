@@ -1,0 +1,6 @@
+{
+  "name": "ORBITAL-SHIELD",
+  "description": "Next-generation aerospace mission digital twin for predictive fault simulation, real-time satellite telemetry, cascading impact analysis, and evidence-grounded AI decision support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
