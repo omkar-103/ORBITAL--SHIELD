@@ -38,11 +38,13 @@ import { WhatIfSimulationLab } from './components/WhatIfSimulationLab';
 import { IncidentHistoryView } from './components/IncidentHistoryView';
 import { MissionCommandMode } from './components/MissionCommandMode';
 import { DemoScenarioController } from './components/DemoScenarioController';
+import { LoadingScreen } from './components/LoadingScreen';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'overview' | 'fault_lab' | 'cascade' | 'simulation' | 'incidents'>('overview');
   const [isMissionCommand, setIsMissionCommand] = useState<boolean>(false);
   const [isDemoActive, setIsDemoActive] = useState<boolean>(false);
+  const [showLoadingScreen, setShowLoadingScreen] = useState<boolean>(true);
 
   // Telemetry & Simulation state
   const [currentTelemetry, setCurrentTelemetry] = useState<TelemetryPoint | null>(null);
@@ -265,9 +267,13 @@ export default function App() {
     }
   };
 
+  if (!currentTelemetry && showLoadingScreen) {
+    return <LoadingScreen onComplete={() => setShowLoadingScreen(false)} />;
+  }
+
   if (!currentTelemetry) {
     return (
-      <div className="min-h-screen bg-[#05070B] flex flex-col items-center justify-center space-y-4">
+      <div className="min-h-screen bg-[#04060A] flex flex-col items-center justify-center space-y-4">
         <div className="w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
         <div className="font-tech text-sm tracking-widest text-cyan-300 uppercase">
           Initializing ORBITAL-SHIELD Telemetry Feed...
@@ -277,7 +283,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#05070B] text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-[#04060A] text-slate-100 flex flex-col relative">
+      {/* Intro Video Loading Screen (Initial boot or on replay) */}
+      {showLoadingScreen && (
+        <LoadingScreen onComplete={() => setShowLoadingScreen(false)} />
+      )}
+
       {/* Top Navigation Bar adhering to Top Bar Contract */}
       <Header
         activeTab={activeTab}
@@ -285,6 +296,7 @@ export default function App() {
         isMissionCommand={isMissionCommand}
         setIsMissionCommand={setIsMissionCommand}
         onStartDemo={() => setIsDemoActive(true)}
+        onReplayIntro={() => setShowLoadingScreen(true)}
         activeMission={activeMission}
         missions={missions}
         onSelectMission={async m => {
@@ -304,6 +316,7 @@ export default function App() {
         onOpenFaultLab={() => setActiveTab('fault_lab')}
         onOpenSimulationLab={() => setActiveTab('simulation')}
         onStartDemo={() => setIsDemoActive(true)}
+        onReplayIntro={() => setShowLoadingScreen(true)}
         activeFaultCount={currentTelemetry.activeFaults.length}
         detectorResult={detectorResult}
         twinSyncInfo={twinSyncInfo}

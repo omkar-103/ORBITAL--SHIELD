@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Play, Terminal, Orbit, Clock } from 'lucide-react';
+import { Shield, Play, Terminal, Orbit, Clock, Film } from 'lucide-react';
 import { MissionProfile } from '../types/spacecraft';
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
   isMissionCommand: boolean;
   setIsMissionCommand: (val: boolean) => void;
   onStartDemo: () => void;
+  onReplayIntro?: () => void;
   activeMission: MissionProfile;
   missions: MissionProfile[];
   onSelectMission: (mission: MissionProfile) => void;
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   isMissionCommand,
   setIsMissionCommand,
   onStartDemo,
+  onReplayIntro,
   activeMission,
   missions,
   onSelectMission,
@@ -142,12 +144,24 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Demo Scenario Button */}
           <button
             onClick={onStartDemo}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition-all whitespace-nowrap active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition-all whitespace-nowrap active:scale-95 cursor-pointer"
             title="Start automated 7-step guided demo scenario"
           >
             <Play className="w-3.5 h-3.5 fill-cyan-300" />
             <span>Demo Scenario</span>
           </button>
+
+          {/* Replay Intro Loading Video */}
+          {onReplayIntro && (
+            <button
+              onClick={onReplayIntro}
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-medium rounded-lg bg-white/5 hover:bg-cyan-500/10 text-slate-300 hover:text-cyan-300 border border-white/10 hover:border-cyan-500/30 transition-all whitespace-nowrap cursor-pointer"
+              title="Watch Intro Video Loading Screen"
+            >
+              <Film className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Intro</span>
+            </button>
+          )}
 
           {/* Mission Command Mode Toggle */}
           <button
