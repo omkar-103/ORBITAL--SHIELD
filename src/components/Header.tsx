@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Play, Terminal, Orbit, Clock, Film } from 'lucide-react';
+import { Shield, Play, Terminal, Orbit, Clock } from 'lucide-react';
 import { MissionProfile } from '../types/spacecraft';
 
 interface HeaderProps {
@@ -8,7 +8,6 @@ interface HeaderProps {
   isMissionCommand: boolean;
   setIsMissionCommand: (val: boolean) => void;
   onStartDemo: () => void;
-  onReplayIntro?: () => void;
   activeMission: MissionProfile;
   missions: MissionProfile[];
   onSelectMission: (mission: MissionProfile) => void;
@@ -21,7 +20,6 @@ export const Header: React.FC<HeaderProps> = ({
   isMissionCommand,
   setIsMissionCommand,
   onStartDemo,
-  onReplayIntro,
   activeMission,
   missions,
   onSelectMission,
@@ -50,24 +48,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Shield className="w-5 h-5 text-cyan-400" />
             <span>ORBITAL-SHIELD</span>
           </a>
-
-          {/* Mission Indicator Tag */}
-          <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-white/10">
-            <select
-              value={activeMission.id}
-              onChange={e => {
-                const found = missions.find(m => m.id === e.target.value);
-                if (found) onSelectMission(found);
-              }}
-              className="bg-[#0B0F19] text-xs font-mono text-cyan-300 border border-white/10 rounded px-2 py-1 outline-none focus:border-cyan-500 cursor-pointer"
-            >
-              {missions.map(m => (
-                <option key={m.id} value={m.id}>
-                  {m.id} · {m.name}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         {/* Zone 2: Navigation Links (Text with active underlines) */}
@@ -150,18 +130,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Play className="w-3.5 h-3.5 fill-cyan-300" />
             <span>Demo Scenario</span>
           </button>
-
-          {/* Replay Intro Loading Video */}
-          {onReplayIntro && (
-            <button
-              onClick={onReplayIntro}
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-medium rounded-lg bg-white/5 hover:bg-cyan-500/10 text-slate-300 hover:text-cyan-300 border border-white/10 hover:border-cyan-500/30 transition-all whitespace-nowrap cursor-pointer"
-              title="Watch Intro Video Loading Screen"
-            >
-              <Film className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Intro</span>
-            </button>
-          )}
 
           {/* Mission Command Mode Toggle */}
           <button

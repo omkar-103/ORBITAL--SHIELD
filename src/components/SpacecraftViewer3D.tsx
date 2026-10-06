@@ -574,13 +574,8 @@ export const SpacecraftViewer3D: React.FC<SpacecraftViewer3DProps> = ({
           </div>
           <span className="text-white/20">|</span>
           <span className="text-xs font-mono text-slate-400">
-            {inEclipse ? 'Eclipse Shadow (Umbra)' : 'Sunlit Pass (Direct Solar)'} · Orbit {(orbitProgress * 100).toFixed(1)}%
+            {inEclipse ? 'Eclipse Shadow (Umbra)' : 'Sunlit Pass (Direct Solar)'}
           </span>
-          {apiReady && (
-            <span className="text-[10px] font-mono text-emerald-400/70 hidden sm:inline">
-              · Sketchfab API Active
-            </span>
-          )}
         </div>
 
         {/* View Mode Switcher */}
@@ -710,9 +705,11 @@ export const SpacecraftViewer3D: React.FC<SpacecraftViewer3DProps> = ({
         /* ── 2D Schematic Fallback ── */
         <div className="w-full h-full relative flex items-center justify-center p-6 bg-[#060910]">
           <img
-            src="/src/assets/images/satellite_schematic_cutaway_1790846219996.jpg"
+            src="https://res.cloudinary.com/dr59elrhw/image/upload/v1791276718/uw9xv7dgwwmevadrkcoy.jpg"
             alt="Spacecraft Engineering Cutaway Schematic"
-            className="max-h-full max-w-full object-contain opacity-75 filter drop-shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+            className="max-h-full max-w-full object-contain opacity-80 filter drop-shadow-[0_0_30px_rgba(6,182,212,0.2)]"
+            crossOrigin="anonymous"
+            loading="lazy"
           />
           {/* Subsystem Schematic Overlay Hotspots */}
           <div className="absolute inset-0 p-8 flex flex-col justify-between pointer-events-none">

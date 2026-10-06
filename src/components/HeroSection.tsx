@@ -10,12 +10,7 @@ import {
   Play,
   AlertTriangle,
   GitCompare,
-  Film,
   Sparkles,
-  Satellite,
-  Wifi,
-  Sun,
-  Layers,
 } from 'lucide-react';
 import { SubsystemMap, MissionProfile } from '../types/spacecraft';
 import { DetectorResult, TwinSyncInfo } from '../services/twinModel';
@@ -27,7 +22,6 @@ interface HeroSectionProps {
   onOpenFaultLab: () => void;
   onOpenSimulationLab: () => void;
   onStartDemo: () => void;
-  onReplayIntro?: () => void;
   activeFaultCount: number;
   detectorResult?: DetectorResult;
   twinSyncInfo?: TwinSyncInfo;
@@ -40,7 +34,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenFaultLab,
   onOpenSimulationLab,
   onStartDemo,
-  onReplayIntro,
   activeFaultCount,
   detectorResult,
   twinSyncInfo,
@@ -60,44 +53,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.12)_0%,rgba(4,6,10,0)_75%)] pointer-events-none" />
 
       <div className="max-w-[1600px] mx-auto space-y-6 relative z-10">
-        {/* Real-Time Orbital Telemetry Ticker Ribbon */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2 rounded-xl bg-[#090D18]/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-slate-400">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-emerald-300 font-semibold uppercase tracking-wider">LIVE TELEMETRY STREAM</span>
-            </div>
-            <span className="text-white/20 hidden sm:inline">|</span>
-            <div className="flex items-center gap-1.5 text-cyan-300">
-              <Satellite className="w-3.5 h-3.5" />
-              <span>{activeMission.spacecraft}</span>
-            </div>
-            <span className="text-white/20 hidden sm:inline">|</span>
-            <span className="hidden md:inline text-slate-300">{activeMission.orbit}</span>
-          </div>
-
-          <div className="flex items-center gap-4 text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <Wifi className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden sm:inline">Svalbard SGS-2:</span>
-              <span className="text-slate-200 tabular-nums">Pass in 12m 40s</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Sun className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-amber-300 tabular-nums">1361 W/m²</span>
-            </div>
-          </div>
-        </div>
-
         {/* Main Grid: Left Identity & Pipeline vs Right Telemetry Matrix */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column: Mission Identity & Core Statement */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono tracking-wider uppercase">
-              <Shield className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Programme ERIZON Digital Twin · Aerospace Safety Platform</span>
-            </div>
-
             <div className="space-y-2">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-tech font-extrabold uppercase tracking-tight text-white leading-tight">
                 Predict. Simulate.{' '}
@@ -169,17 +128,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <span>What-If Multi-Scenario Lab</span>
                 <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
               </button>
-
-              {onReplayIntro && (
-                <button
-                  onClick={onReplayIntro}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-mono text-xs uppercase rounded-xl border border-white/10 transition-all cursor-pointer"
-                  title="Watch Intro Video Loading Screen"
-                >
-                  <Film className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Intro Video</span>
-                </button>
-              )}
             </div>
           </div>
 
