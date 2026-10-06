@@ -205,6 +205,103 @@ export const CascadingFailureGraph: React.FC<CascadingFailureGraphProps> = ({
         </div>
       </div>
 
+      {/* Causal Chain Waterfall — shows actual model state deltas */}
+      {hasBatteryFault && (() => {
+        // Nominal baselines (sunlit, no fault)
+        const nomBusV = 29.8 * 0.98;
+        const nomBattTemp = 31.0;
+        const nomLinkMargin = 6.8;
+        const nomThroughput = 180.0;
+
+        const curBusV = subsystems.power.busVoltage;
+        const curBattTemp = subsystems.thermal.batteryCellTemp;
+        const curLinkMargin = subsystems.communication.linkMargin;
+        const curThroughput = subsystems.payload.sensorThroughput;
+
+        const deltaVolt = curBusV - nomBusV;
+        const deltaTemp = curBattTemp - nomBattTemp;
+        const deltaMargin = curLinkMargin - nomLinkMargin;
+        const throughputPct = Math.round(((curThroughput - nomThroughput) / nomThroughput) * 100);
+
+        const activeFaultSev = activeFaults.find(f => f.type === 'battery_degradation')?.severity ?? 0;
+
+        const chainSteps = [
+          {
+            label: 'Battery Degradation',
+            value: `+${activeFaultSev}% Cell Impedance`,
+            delta: null,
+            color: 'text-rose-400',
+            bg: 'bg-rose-500/10 border-rose-500/30',
+            explanation: 'Internal resistance rises → higher I²R losses under same discharge current.',
+            icon: '⚡',
+          },
+          {
+            label: 'Bus Voltage',
+            value: `${curBusV.toFixed(1)}V`,
+            delta: `${deltaVolt >= 0 ? '+' : ''}${deltaVolt.toFixed(1)}V`,
+            color: deltaVolt < -1 ? 'text-rose-400' : deltaVolt < 0 ? 'text-amber-400' : 'text-emerald-400',
+            bg: 'bg-amber-500/10 border-amber-500/30',
+            explanation: 'Bus voltage = battery terminal voltage × 0.98. Cell impedance voltage drop depresses available bus rail.',
+            icon: '🔋',
+          },
+          {
+            label: 'Battery Temperature',
+            value: `${curBattTemp.toFixed(1)}°C`,
+            delta: `${deltaTemp >= 0 ? '+' : ''}${deltaTemp.toFixed(1)}°C`,
+            color: deltaTemp > 8 ? 'text-rose-400' : deltaTemp > 4 ? 'text-amber-400' : 'text-emerald-400',
+            bg: 'bg-orange-500/10 border-orange-500/30',
+            explanation: 'I²R = I² × R. Higher internal resistance at same discharge current → increased Joule heat generation.',
+            icon: '🌡',
+          },
+          {
+            label: 'RF Link Margin',
+            value: `${curLinkMargin.toFixed(1)} dB`,
+            delta: `${deltaMargin >= 0 ? '+' : ''}${deltaMargin.toFixed(1)} dB`,
+            color: deltaMargin < -2 ? 'text-rose-400' : deltaMargin < 0 ? 'text-amber-400' : 'text-emerald-400',
+            bg: 'bg-yellow-500/10 border-yellow-500/30',
+            explanation: 'RF amplifier (TWTA) power budget constrained by bus voltage sag → reduced transmit power → lower link margin.',
+            icon: '📡',
+          },
+          {
+            label: 'Payload Throughput',
+            value: `${curThroughput.toFixed(0)} MB/s`,
+            delta: `${throughputPct >= 0 ? '+' : ''}${throughputPct}%`,
+            color: throughputPct < -50 ? 'text-rose-400' : throughputPct < -20 ? 'text-amber-400' : 'text-emerald-400',
+            bg: 'bg-purple-500/10 border-purple-500/30',
+            explanation: 'Reduced power bus limits detector array clock rate. Reduced downlink margin forces duty-cycle reduction.',
+            icon: '🛰',
+          },
+        ];
+
+        return (
+          <div className="bg-[#07090F] border border-cyan-500/20 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+              <Share2 className="w-4 h-4 text-cyan-400" />
+              <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold">
+                Live Causal Chain — Actual Model State
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 overflow-x-auto">
+              {chainSteps.map((step, i) => (
+                <React.Fragment key={step.label}>
+                  <div className={`flex-shrink-0 p-3 rounded-xl border ${step.bg} min-w-[130px]`}>
+                    <div className="text-xs font-mono text-slate-400 uppercase tracking-wide">{step.icon} {step.label}</div>
+                    <div className={`text-lg font-bold tabular-nums font-tech ${step.color}`}>{step.value}</div>
+                    {step.delta !== null && (
+                      <div className={`text-xs font-mono font-semibold ${step.color}`}>{step.delta} vs nominal</div>
+                    )}
+                    <div className="text-[10px] font-mono text-slate-500 mt-1 leading-relaxed max-w-[140px]">{step.explanation}</div>
+                  </div>
+                  {i < chainSteps.length - 1 && (
+                    <ArrowRight className="w-5 h-5 text-cyan-500/60 flex-shrink-0 hidden sm:block" />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Main Graph Canvas and Detail Inspector */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* SVG Dependency Canvas */}
