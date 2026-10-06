@@ -1,6 +1,7 @@
 import React from 'react';
-import { Shield, Activity, Zap, Radio, Thermometer, Database, ArrowRight, Play, AlertTriangle } from 'lucide-react';
+import { Shield, Activity, Zap, Radio, Thermometer, Database, ArrowRight, Play, AlertTriangle, GitCompare } from 'lucide-react';
 import { SubsystemMap, MissionProfile } from '../types/spacecraft';
+import { DetectorResult, TwinSyncInfo } from '../services/twinModel';
 
 interface HeroSectionProps {
   subsystems: SubsystemMap;
@@ -10,6 +11,8 @@ interface HeroSectionProps {
   onOpenSimulationLab: () => void;
   onStartDemo: () => void;
   activeFaultCount: number;
+  detectorResult?: DetectorResult;
+  twinSyncInfo?: TwinSyncInfo;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -20,6 +23,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenSimulationLab,
   onStartDemo,
   activeFaultCount,
+  detectorResult,
+  twinSyncInfo,
 }) => {
   const getHealthColor = (score: number) => {
     if (score < 45) return 'text-rose-400 border-rose-500/30 bg-rose-500/10';
@@ -130,6 +135,56 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             )}
           </div>
+
+          {/* Section 5: Digital Twin Synchronization Indicator */}
+          <div className="p-2.5 rounded-lg bg-black/40 border border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  twinSyncInfo?.status === 'SYNCHRONIZED'
+                    ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                    : twinSyncInfo?.status === 'DRIFT'
+                    ? 'bg-amber-400'
+                    : 'bg-rose-400'
+                }`}
+              />
+              <span className="font-bold text-white uppercase">{twinSyncInfo?.status || 'SYNCHRONIZED'}</span>
+              <span className="text-slate-600">·</span>
+              <span className="text-slate-400">
+                Drift: <span className="text-cyan-300 tabular-nums">{twinSyncInfo?.driftSeconds.toFixed(2) || '0.00'}s</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-slate-400">
+              <span>Telemetry: <span className="text-slate-200 tabular-nums">{twinSyncInfo?.telemetryTimeStr || 'T+00:00:00'}</span></span>
+              <span>Samples: <span className="text-cyan-400 font-bold tabular-nums">{twinSyncInfo?.samplesIncorporated || 0}</span></span>
+            </div>
+          </div>
+
+          {/* Section 12: Live Residual Detector Chip (F2) */}
+          {detectorResult && (
+            <div
+              className={`px-3 py-2 rounded-lg border text-xs font-mono flex items-center justify-between gap-2 transition-all ${
+                detectorResult.state === 'ANOMALY'
+                  ? 'bg-rose-500/15 border-rose-500/40 text-rose-300 animate-pulse'
+                  : detectorResult.state === 'WATCH'
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
+                <span>{detectorResult.state === 'ANOMALY' ? '✖' : detectorResult.state === 'WATCH' ? '▲' : '●'}</span>
+                <span>DETECTOR: {detectorResult.state}</span>
+              </div>
+              <div className="text-[11px] tabular-nums font-mono text-right">
+                <span className="text-slate-400">{detectorResult.drivingChannel} residual: </span>
+                <span className="font-bold text-white">
+                  {detectorResult.currentResidual > 0 ? '+' : ''}
+                  {detectorResult.currentResidual.toFixed(2)}
+                  {detectorResult.drivingChannel === 'Bus Voltage' ? 'V' : '°C'}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Subsystem Health Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">

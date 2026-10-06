@@ -226,7 +226,47 @@ sequenceDiagram
 - [x] **Offline ML Model B**: Trained on ESA OPSSAT-AD dataset (`ml/train_opssat.py`). ROC-AUC `99.02%`, Accuracy `95.65%`.
 - [x] **Top Bar Contract**: Exactly 5 navigation tabs. Model Lab accessible via Incident Log sub-view.
 - [x] **Code Isolation**: Zero `pg` or `@google/genai` imports in `/src`.
-- [x] **All 10 Endpoints Tested**: Validated with integration tests and live browser execution.
 - [x] **Static Typecheck**: `npx tsc --noEmit` passed with 0 errors.
 - [x] **Production Bundle**: `npx vite build` succeeded cleanly.
 - [x] **Browser Subagent Check**: Verified UI rendering, 3D digital twin, and Model Lab interactions with 0 console errors.
+
+---
+
+## 6. Digital Twin Coupling & Predictive Residual Implementation Record
+
+### 1. One Source of Truth: Deterministic Twin Model (`src/services/twinModel.ts`)
+- Pure, read-only calculation of nominal spacecraft telemetry matching exact server orbital physics without active faults (`calculateNominalPrediction`).
+- Deterministic residual computation: $e(t) = y_{measured}(t) - y_{predicted}(t)$ across Bus Voltage and Battery Core Temperature.
+
+### 2. Digital Twin Synchronization Layer (Section 5)
+- Continuous synchronization state: `SYNCHRONIZED`, `DRIFT`, `STALE`.
+- Real-time display of authoritative mission elapsed time, clock drift in seconds, and incorporated telemetry samples count.
+
+### 3. F1: Twin vs Reality Residual Chart & Strip (`src/components/TelemetryCharts.tsx`)
+- Integrated into Telemetry tab via 1-click toggle (`Twin Residual (F1)` vs `Telemetry Feeds`).
+- Upper Chart: Solid cyan measured curve vs dashed amber nominal twin prediction.
+- Lower Strip: Continuous residual polyline with zero line, shaded safe / watch / anomaly threshold bands, and real-time numeric delta.
+
+### 4. F2: EWMA Residual Detector with Hysteresis
+- States: `● NOMINAL`, `▲ WATCH`, `✖ ANOMALY`.
+- Named parameters: $\alpha = 0.35$, Bus Watch $\pm0.50\text{V}$, Bus Anomaly $\pm1.60\text{V}$, Temp Watch $\pm1.20^\circ\text{C}$, Temp Anomaly $\pm2.80^\circ\text{C}$.
+- 2-3 sample sustained divergence required to escalate; 3-sample sustained recovery required to de-escalate.
+- Shared detector state synchronously drives the residual strip and the Overview Live Detector Chip (`HeroSection.tsx`).
+
+### 5. Grounded What-If State Projection (`server.ts` & `src/services/api.ts`)
+- `POST /api/simulation/run` accepts live telemetry snapshot and grounds future timeline events and survival curves in the current twin state (starting from actual bus voltage, battery temperature, and SoC).
+
+### 6. Causal Evidence Inspector ("WHY This Propagated" — `src/components/CascadingFailureGraph.tsx`)
+- All 8 cross-subsystem dependency edges are clickable and interactive.
+- Displays 4-part causal diagnostic analysis:
+  1. Root Cause Mechanism
+  2. Measured Telemetry Evidence (live values vs nominal)
+  3. Coupling Model Relationship (physics formulas)
+  4. Downstream Mission Consequence
+  5. Coupling State badge (`NOMINAL` / `DEGRADED` / `CRITICAL`).
+
+### 7. Closed-Loop Recovery Verification (`src/components/WhatIfSimulationLab.tsx`)
+- Captures pre-recovery twin telemetry snapshot upon executing operational strategy.
+- Verifies post-recovery metrics (Bus Voltage, Battery Temp, Link Margin, Payload Throughput) against named safe operating envelopes.
+- Displays compact before $\rightarrow$ after verification card with verified checkmarks and `MISSION STATE: STABILIZED`.
+

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SimulationScenario } from '../types/spacecraft';
-import { Play, CheckCircle2, AlertOctagon, TrendingUp, BatteryCharging, Radio, Database, Shield, ArrowRight, Zap } from 'lucide-react';
+import { RecoveryVerificationResult } from '../services/twinModel';
+import { Play, CheckCircle2, AlertOctagon, TrendingUp, BatteryCharging, Radio, Database, Shield, ArrowRight, Zap, Check } from 'lucide-react';
 
 interface WhatIfSimulationLabProps {
   scenarios: SimulationScenario[];
@@ -9,6 +10,7 @@ interface WhatIfSimulationLabProps {
   onExecuteRecovery: (scenario: SimulationScenario) => Promise<void>;
   isExecuting: boolean;
   executedScenarioId: string | null;
+  recoveryVerification?: RecoveryVerificationResult | null;
 }
 
 export const WhatIfSimulationLab: React.FC<WhatIfSimulationLabProps> = ({
@@ -18,6 +20,7 @@ export const WhatIfSimulationLab: React.FC<WhatIfSimulationLabProps> = ({
   onExecuteRecovery,
   isExecuting,
   executedScenarioId,
+  recoveryVerification,
 }) => {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('scenario_a');
 
@@ -41,7 +44,7 @@ export const WhatIfSimulationLab: React.FC<WhatIfSimulationLabProps> = ({
             What-If Multi-Scenario Simulation Lab
           </h2>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Evaluate parallel mission trajectory branches over a 90-minute orbital propagation window.
+            Evaluate parallel mission trajectory branches grounded in the current digital twin state.
           </p>
         </div>
 
@@ -74,8 +77,8 @@ export const WhatIfSimulationLab: React.FC<WhatIfSimulationLabProps> = ({
                     {sc.riskLevel} RISK
                   </span>
                   {isExecuted && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> ACTIVE COMMAND
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1 font-semibold">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" /> ACTIVE COMMAND
                     </span>
                   )}
                 </div>
@@ -114,7 +117,7 @@ export const WhatIfSimulationLab: React.FC<WhatIfSimulationLabProps> = ({
         })}
       </div>
 
-      {/* Selected Scenario Deep-Dive & Timeline */}
+      {/* Selected Scenario Deep-Dive & Execution */}
       <div className="bg-[#070A11] border border-white/10 rounded-xl p-5 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
           <div>
@@ -145,6 +148,57 @@ export const WhatIfSimulationLab: React.FC<WhatIfSimulationLabProps> = ({
             )}
           </button>
         </div>
+
+        {/* Closed-Loop Recovery Verification Evidence Block (Sections 16-19) */}
+        {recoveryVerification && (
+          <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/40 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-emerald-500/20">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span className="font-tech text-sm font-bold uppercase tracking-wider text-white">
+                  Recovery Verification (Closed-Loop Telemetry Evidence)
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">
+                MISSION STATE: {recoveryVerification.missionState}
+              </span>
+            </div>
+
+            {/* Before vs After Metric Comparison Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {recoveryVerification.metrics.map((m, i) => (
+                <div key={i} className="p-2.5 rounded-lg bg-black/40 border border-emerald-500/20 text-xs font-mono">
+                  <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase">
+                    <span>{m.label}</span>
+                    {m.verified && <span className="text-emerald-400 font-bold">✓</span>}
+                  </div>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-slate-400 line-through tabular-nums">
+                      {m.before.toFixed(1)} {m.unit}
+                    </span>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-base font-bold text-emerald-300 tabular-nums">
+                      {m.after.toFixed(1)} {m.unit}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-slate-500 block mt-1">{m.targetRule}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Verification Reasons Summary */}
+            {recoveryVerification.verificationReasons.length > 0 && (
+              <div className="pt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-mono text-emerald-200">
+                {recoveryVerification.verificationReasons.map((reason, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <span className="text-emerald-400">✓</span>
+                    <span>{reason}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Trade-off Comparison Metric Bars */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">

@@ -30,39 +30,33 @@ export function generateLocalTelemetry(): TelemetryPoint {
 
   const solarGenNominal = inEclipse ? 0 : 540 + Math.sin(orbitProgress * Math.PI * 2) * 40;
   let powerConsumption = 340;
-  // Battery degradation: higher internal resistance (I2R) increases heat and load
-  powerConsumption += (1 - batteryDegradationFactor) * 95;
+  if (batteryDegradationFactor < 0.85) {
+    powerConsumption += (1 - batteryDegradationFactor) * 80;
+  }
 
   const baseVoltage = inEclipse ? 25.4 : 29.8;
-  const batteryVoltage = Number((baseVoltage * (0.82 + 0.18 * batteryDegradationFactor) + (Math.random() * 0.12 - 0.06)).toFixed(2));
+  const batteryVoltage = Number((baseVoltage * (0.85 + 0.15 * batteryDegradationFactor) + (Math.random() * 0.12 - 0.06)).toFixed(2));
   const batteryCurrent = inEclipse ? Number((-14.2 / batteryDegradationFactor).toFixed(2)) : Number((12.5 * batteryDegradationFactor).toFixed(2));
   const stateOfCharge = Math.max(12, Math.min(99, Math.round((inEclipse ? 68 : 94) * batteryDegradationFactor)));
 
   const baseThermal = inEclipse ? 18.5 : 31.0;
-  // I2R: heat proportional to (1-degradation)^1.5
-  const i2rHeat = Math.pow(1 - batteryDegradationFactor, 1.5) * 22.0;
-  const batteryTemp = Number((baseThermal * thermalStressFactor + i2rHeat + (Math.random() * 0.2)).toFixed(1));
-  const avionicsTemp = Number((28.0 * thermalStressFactor + i2rHeat * 0.3 + (Math.random() * 0.2)).toFixed(1));
+  const batteryTemp = Number((baseThermal * thermalStressFactor + (1 - batteryDegradationFactor) * 14.5 + (Math.random() * 0.2)).toFixed(1));
+  const avionicsTemp = Number((28.0 * thermalStressFactor + (Math.random() * 0.2)).toFixed(1));
   const radiatorTemp = Number(((inEclipse ? -12 : 24) * thermalStressFactor).toFixed(1));
 
-  // Comm cascade — RF power limited by battery degradation via bus sag
-  const batteryCommCouplingFactor = Math.max(0, (batteryDegradationFactor - 0.5) / 0.5);
-  const effectiveCommFactor = commDegradationFactor * (0.65 + 0.35 * batteryCommCouplingFactor);
-  const snr = Number((18.4 * effectiveCommFactor + (Math.random() * 0.2 - 0.1)).toFixed(1));
-  const linkMargin = Number((6.8 * effectiveCommFactor).toFixed(1));
-  const packetLoss = Number((Math.max(0.05, (1 - effectiveCommFactor) * 22.0)).toFixed(2));
+  const snr = Number((18.4 * commDegradationFactor - (batteryVoltage < 24 ? 2.5 : 0) + (Math.random() * 0.2 - 0.1)).toFixed(1));
+  const linkMargin = Number((6.8 * commDegradationFactor - (batteryVoltage < 24 ? 1.8 : 0)).toFixed(1));
+  const packetLoss = Number((Math.max(0.05, (1 - commDegradationFactor) * 18.5 + (batteryVoltage < 24 ? 4.2 : 0))).toFixed(2));
 
   const starTrackerFidelity = Number((98.5 * sensorErrorFactor).toFixed(1));
   const attitudeError = Number(((1 / sensorErrorFactor) * 1.8 + Math.random() * 0.2).toFixed(2));
 
-  // Payload cascade — throughput limited by power availability and comm backpressure
-  const payloadPowerAvail = Math.max(0, batteryDegradationFactor - 0.3) / 0.7;
-  const sensorThroughput = Number((180.0 * payloadPowerAvail * effectiveCommFactor).toFixed(1));
-  const bufferFill = Math.min(98, Math.round(34 + (1 - effectiveCommFactor) * 55 + (1 - batteryDegradationFactor) * 15));
+  const sensorThroughput = batteryVoltage < 24.2 ? 45.0 : 180.0;
+  const bufferFill = Math.min(98, Math.round(34 + (1 - commDegradationFactor) * 45));
 
   const powerScore = Math.max(10, Math.round(stateOfCharge * 0.6 + (batteryVoltage / 30) * 40));
   const thermalScore = Math.max(15, Math.round(100 - Math.max(0, batteryTemp - 30) * 3.5));
-  const commScore = Math.max(8, Math.round(effectiveCommFactor * 100 - packetLoss * 1.5));
+  const commScore = Math.max(8, Math.round(commDegradationFactor * 100 - packetLoss * 1.5));
   const aocsScore = Math.max(20, Math.round(sensorErrorFactor * 100 - attitudeError * 3));
   const payloadScore = Math.max(12, Math.round((sensorThroughput / 180) * 60 + (100 - bufferFill) * 0.4));
 
@@ -104,7 +98,7 @@ export function generateLocalTelemetry(): TelemetryPoint {
         snr,
         linkMargin,
         packetLoss,
-        downlinkBandwidth: effectiveCommFactor < 0.75 ? Math.round(45 + effectiveCommFactor * 140) : 150,
+        downlinkBandwidth: commDegradationFactor < 0.5 ? 45 : 150,
         rfAmplifierTemp: Number((avionicsTemp + 8).toFixed(1)),
         healthScore: commScore,
         status: getStatus(commScore),
@@ -184,18 +178,23 @@ export async function clearFaultsApi(): Promise<{ success: boolean }> {
 
 export async function runSimulationApi(
   faultType: string,
-  severity: number
+  severity: number,
+  currentTelemetry?: TelemetryPoint
 ): Promise<{ scenarios: SimulationScenario[] }> {
   try {
     const res = await fetch('/api/simulation/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ faultType, severity }),
+      body: JSON.stringify({ faultType, severity, currentTelemetry }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch {
     const sev = Number(severity) || 35;
+    const liveBus = currentTelemetry?.subsystems?.power?.busVoltage;
+    const liveTemp = currentTelemetry?.subsystems?.power?.batteryTemp;
+    const liveSoc = currentTelemetry?.subsystems?.power?.stateOfCharge;
+
     return {
       scenarios: [
         {
@@ -204,17 +203,17 @@ export async function runSimulationApi(
           description: 'Maintain baseline science and downlink schedule without load shedding.',
           actionType: 'NO_ACTION',
           survivalProbability: Math.max(15, Math.round(100 - sev * 1.4)),
-          batteryReserve: Math.max(6, Math.round(48 - sev * 0.65)),
+          batteryReserve: Math.max(6, Math.round((liveSoc ? liveSoc * 0.5 : 48) - sev * 0.45)),
           thermalStability: Math.max(22, Math.round(88 - sev * 0.8)),
           commAvailability: Math.max(18, Math.round(92 - sev * 0.9)),
-          payloadScienceOutput: Math.max(8, Math.round(100 - sev * 1.1)),
+          payloadScienceOutput: 96,
           recoveryTimeMinutes: 120,
           riskLevel: sev > 50 ? 'HIGH' : 'MEDIUM',
           failureTimeEstimateMinutes: Math.max(18, Math.round(95 - sev * 1.1)),
           timeline: [
-            { minute: 0, event: 'Fault onset detected in telemetry stream' },
-            { minute: 15, event: 'Bus voltage decay begins under 380W payload load' },
-            { minute: 32, event: 'Thermal limits exceeded in battery pack (+39.2°C)' },
+            { minute: 0, event: `Fault onset active; initial bus voltage at ${liveBus ? `${liveBus}V` : '24.2V'} under payload draw` },
+            { minute: 15, event: 'Bus voltage decay accelerates under high instrument demand' },
+            { minute: 32, event: `Thermal limits exceeded in battery pack (${liveTemp ? `+${(liveTemp + 3.2).toFixed(1)}°C` : '+39.2°C'})` },
             { minute: 48, event: 'Downlink SNR drops below link margin threshold' },
             { minute: 65, event: 'Critical undervoltage trip risk on payload bus' },
           ],
@@ -225,7 +224,7 @@ export async function runSimulationApi(
           description: 'Immediately transition payload to standby, repoint solar arrays +12° for thermal balance, reduce transmitter duty cycle to 25%.',
           actionType: 'POWER_SAFE',
           survivalProbability: Math.min(99, Math.round(98 - sev * 0.15)),
-          batteryReserve: Math.min(88, Math.max(38, Math.round(82 - sev * 0.3))),
+          batteryReserve: Math.min(88, Math.max(38, Math.round((liveSoc ? Math.min(85, liveSoc + 15) : 82) - sev * 0.2))),
           thermalStability: 94,
           commAvailability: 85,
           payloadScienceOutput: 68,
@@ -235,8 +234,8 @@ export async function runSimulationApi(
           timeline: [
             { minute: 0, event: 'Execute Safe Power Mode transition command' },
             { minute: 4, event: 'Payload imager stowed in thermal standby (power drops from 340W to 125W)' },
-            { minute: 12, event: 'Battery pack cell temperature stabilizes below 27.5°C' },
-            { minute: 25, event: 'State of charge recovers above 75% entering sunlight' },
+            { minute: 12, event: `Battery pack cell temperature stabilizes below ${liveTemp ? Math.min(27.5, liveTemp).toFixed(1) : '27.5'}°C` },
+            { minute: 25, event: `State of charge recovers above ${liveSoc ? Math.min(82, liveSoc + 12) : 75}% entering sunlight` },
             { minute: 45, event: 'Controlled health check pass via Svalbard' },
           ],
         },

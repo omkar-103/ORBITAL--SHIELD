@@ -21,7 +21,7 @@ ORBITAL-SHIELD integrates:
 3. **Fault Lab**: Precision injection center for subsystem stress vectors (severity, duration, cascade horizon).
 4. **Cascading Failure Visualization**: Interactive dependency network illustrating failure propagation from energy storage through thermal dissipation to mission science loss.
 5. **What-If Simulation Lab**: Multi-scenario trajectory evaluation comparing Baseline Continue, Safe Power Mode, Payload Duty Cycling, and Downlink Priority.
-6. **Evidence-Grounded AI**: Powered by Gemini 3.8 Flash (`@google/genai`), strictly dividing insights into **OBSERVED** telemetry facts, **PREDICTED** physical extrapolations, and **RECOMMENDED** recovery actions with zero hallucination.
+6. **Evidence-Grounded AI**: Powered by Groq llama3.3-70b-versatile (`@groq`), strictly dividing insights into **OBSERVED** telemetry facts, **PREDICTED** physical extrapolations, and **RECOMMENDED** recovery actions with zero hallucination.
 7. **Mission Command Mode**: High-contrast, distraction-free operations cockpit designed for rapid tactical execution.
 8. **Automated Demo Scenario**: Deterministic 7-step guided walkthrough for evaluation and presentations.
 
@@ -47,7 +47,7 @@ ORBITAL-SHIELD integrates:
         └──────────────┬──────────────┘                          │
                        ▼                                         ▼
             [ What-If Monte Carlo Lab ]          [ Grounded Safety AI ]
-            (Baseline vs Safe Power vs           (Gemini 3.8 Flash SDK)
+            (Baseline vs Safe Power vs           (Groq llama)
              Duty Cycling vs Thermal Slew)       (Observed / Predicted / Recommended)
                        │                                         │
                        └────────────────────┬────────────────────┘
@@ -63,8 +63,8 @@ ORBITAL-SHIELD integrates:
 
 - **Frontend Core**: React 19, TypeScript, Tailwind CSS v4, Motion
 - **3D Spatial Visualization**: Three.js (ACES Filmic Tone Mapping, PBR materials, custom geometry, raycasting)
-- **Backend Service**: Express / Node.js (`server.ts` with tsx)
-- **AI Intelligence**: `@google/genai` TypeScript SDK (model: `gemini-3.8-flash`)
+- **Backend Service**: 
+- **AI Intelligence**: 
 - **Icons & UI Accents**: Lucide React
 - **Design System**: Aerospace Dark Theme, JetBrains Mono tabular numerals, Chakra Petch display typography
 
@@ -96,10 +96,69 @@ Click the **"DEMO SCENARIO"** button in the top navigation bar to launch the gui
    - **RECOMMENDED**: Specific flight director command sequence.
 6. **Step 6: What-If Multi-Scenario Lab** — Compare Baseline (42% survival probability) against Safe Power Mode (98% survival probability).
 7. **Step 7: Execute Safe Power Mode** — Click **"Execute Strategy"** to apply the operational command. Spacecraft stabilizes, solar panels bias +12°, and health restores to nominal cruise.
+8. **Step 8: Closed-Loop Verification** — Inspect the Recovery Verification card confirming real pre vs post metric recovery (bus voltage restored, battery temperature cooled, link margin stabilized).
 
 ---
 
-## 6. Environment Variables
+## 6. Digital Twin Coupling & Predictive Residual Architecture (F1 & F2)
+
+Unlike passive telemetry dashboards, ORBITAL-SHIELD continuously evaluates measured telemetry against a pure, deterministic **Digital Twin Nominal Model**:
+
+```
+REALITY (Measured Telemetry)
+       │
+       ▼
+[ Nominal Digital Twin Prediction ]
+(Pure physics model at same orbital time with zero active faults)
+       │
+       ▼
+[ Residual Calculation: e(t) = y_meas(t) - y_nom(t) ]
+(Bus Voltage Residual · Battery Core Temp Residual)
+       │
+       ▼
+[ EWMA Residual Detector with Hysteresis ]
+(NOMINAL  ──[watch threshold]──>  WATCH  ──[anomaly threshold]──>  ANOMALY)
+       │
+       ▼
+[ Cross-Subsystem Causal Failure Graph (WHY It Propagated) ]
+(Interactive edge inspector displaying Cause · Measured Evidence · Physics Coupling · Consequence)
+       │
+       ▼
+[ Grounded What-If Simulation & Closed-Loop Recovery Verification ]
+(Starts from live twin state; verifies actual post-recovery metrics)
+```
+
+### Digital Twin Synchronization
+- **Indicators**: `● SYNCHRONIZED`, `▲ DRIFT`, `✖ STALE`.
+- **Authoritative Clock**: Displays real mission elapsed time (`T+HH:MM:SS`), drift delta in seconds, and total samples ingested.
+
+### F1: Twin vs Reality Residual Chart & Strip
+- **Upper Chart**: Simultaneously renders solid cyan **Measured Reality** against dashed amber **Twin Nominal Prediction**.
+- **Lower Residual Strip**: Features zero line, shaded safe / watch / anomaly threshold bands, and real-time residual polyline.
+
+### F2: EWMA Residual Detector
+- **Hysteresis States**: `● NOMINAL`, `▲ WATCH`, `✖ ANOMALY`.
+- **Thresholds**:
+  - Bus Voltage: Watch $\pm0.50\text{V}$, Anomaly $\pm1.60\text{V}$.
+  - Battery Temperature: Watch $\pm1.20^\circ\text{C}$, Anomaly $\pm2.80^\circ\text{C}$.
+- **Shared State**: Drives both the Telemetry Chart residual strip and the Live Detector Chip on the main overview.
+
+### Causal Evidence Inspector ("WHY This Propagated")
+Clicking any connection edge in the Cascading Failure Graph reveals:
+1. **Root Cause Mechanism**: Underlying physical failure trigger.
+2. **Measured Telemetry Evidence**: Live values contrasted with nominal baseline.
+3. **Coupling Model Relationship**: Spacecraft physical coupling formula.
+4. **Downstream Consequence**: Cascading degradation vector across dependent subsystems.
+5. **Coupling State**: `● NOMINAL`, `▲ DEGRADED CASCADE`, `✖ CRITICAL PROPAGATED`.
+
+### Closed-Loop Recovery Verification
+- Captures an authoritative pre-recovery twin telemetry snapshot upon executing recovery.
+- Compares against live post-recovery telemetry across Bus Voltage, Battery Core Temp, Downlink Margin, and Payload Throughput.
+- Confirms `MISSION STATE: STABILIZED` with verifiable before $\rightarrow$ after metrics.
+
+---
+
+## 7. Environment Variables
 
 Create `.env` using `.env.example`:
 
