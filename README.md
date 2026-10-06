@@ -1,4 +1,4 @@
-# ORBITAL-SHIELD 🚀
+# ORBITAL-SHIELD 
 ### Autonomous Mission Resilience & Spacecraft Subsystem Digital Twin Platform
 *“Predict. Simulate. Protect.”*
 
