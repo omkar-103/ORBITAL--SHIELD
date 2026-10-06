@@ -105,7 +105,7 @@ export default function App() {
         const [missionData, incidentList, simData] = await Promise.all([
           fetchMissionsApi(),
           fetchIncidentsApi(),
-          runSimulationApi('battery_degradation', 38),
+          runSimulationApi('battery_degradation', 65),
         ]);
 
         if (missionData.missions.length > 0) {
@@ -195,22 +195,27 @@ export default function App() {
   const handleExecuteRecovery = async (scenario?: SimulationScenario) => {
     setIsExecutingStrategy(true);
     try {
-      // Clear faults to stabilize spacecraft state
+      // Clear faults — removes fault from server so telemetry naturally recovers
       await clearFaultsApi();
       const targetId = scenario?.id || 'scenario_a';
       setExecutedScenarioId(targetId);
 
-      // Refresh telemetry & incidents
+      // Refresh incidents
       const incList = await fetchIncidentsApi();
       setIncidents(incList);
 
-      // Generate post-recovery AI explanation
+      // Generate grounded post-recovery AI explanation using real telemetry + strategy context
       if (currentTelemetry) {
+        const tel = currentTelemetry.subsystems;
+        const strategyTitle = scenario?.title || 'Safe Power Mode (Recommended)';
+        const survivalProb = scenario?.survivalProbability ?? 93;
+        const battReserve = scenario?.batteryReserve ?? 75;
+
         setAiAnalysis({
-          observed: `Safe Power Mode transition executed. Payload rail throttled from 340W to 125W. Solar array drive adjusted +12°. Bus voltage stabilized at 28.4V with battery core temperature settling to 24.8°C.`,
-          predicted: `Spacecraft will transit upcoming eclipse with 82% battery reserve intact. Critical undervoltage trip risk mitigated to 0.0%.`,
-          recommended: `Maintain Safe Power standby until next sunlit Svalbard ground station contact. Resume selective duty-cycled multispectral imaging post-pass.`,
-          model: 'gemini-3.8-flash',
+          observed: `Recovery command "${strategyTitle}" uplinked and acknowledged. Bus voltage now ${tel.power.busVoltage}V, battery cell temperature ${tel.power.batteryTemp}°C, state of charge ${tel.power.stateOfCharge}%. Payload load reduced to standby mode.`,
+          predicted: `With fault cleared, spacecraft will recover to nominal thermal and power margins within the next ${scenario?.recoveryTimeMinutes ?? 28} minutes. Projected eclipse survival: ${battReserve}% battery reserve. Mission survival probability now ${survivalProb}%.`,
+          recommended: `Monitor battery voltage recovery above 28V over next 5 minutes. Verify thermal stabilization below 28°C before resuming payload science operations. Log recovery action in incident record.`,
+          model: 'deterministic-physics-engine',
           timestamp: new Date().toISOString(),
         });
       }
@@ -385,15 +390,16 @@ export default function App() {
       {isDemoActive && (
         <DemoScenarioController
           onClose={() => setIsDemoActive(false)}
-          onInjectBatteryFault={() => handleInjectFault('battery_degradation', 38, 60, 'power')}
+          onInjectBatteryFault={() => handleInjectFault('battery_degradation', 65, 60, 'power')}
           onTriggerAI={handleRefreshAI}
           onTriggerSimulation={async () => {
-            const sim = await runSimulationApi('battery_degradation', 38);
+            const sim = await runSimulationApi('battery_degradation', 65);
             setScenarios(sim.scenarios);
           }}
           onExecuteRecovery={() => handleExecuteRecovery()}
           onResetNominal={handleClearFaults}
           subsystems={currentTelemetry.subsystems}
+          scenarios={scenarios}
         />
       )}
 
