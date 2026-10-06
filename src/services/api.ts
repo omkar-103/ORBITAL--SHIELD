@@ -477,10 +477,29 @@ export interface MlBenchmarkData {
 export async function fetchMlBenchmark(): Promise<MlBenchmarkData | null> {
   try {
     const res = await fetch('/api/ml/benchmark');
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch {
-    return null;
+    // Client-side fallback for static deployments (e.g. Vercel static hosting)
+    try {
+      const [batteryMod, replayMod, opssatMod] = await Promise.all([
+        import('../../models/battery_soh.metrics.json'),
+        import('../../models/battery_replay.json'),
+        import('../../models/opssat_anomaly.metrics.json'),
+      ]);
+      const battery = batteryMod.default || batteryMod;
+      const batteryReplay = replayMod.default || replayMod;
+      const opssat = opssatMod.default || opssatMod;
+      return {
+        available: Boolean(battery || opssat),
+        battery: battery as any,
+        batteryReplay: batteryReplay as any,
+        opssat: opssat as any,
+      };
+    } catch (fallbackErr) {
+      console.warn('Could not load bundled ML benchmark artifacts:', fallbackErr);
+      return null;
+    }
   }
 }
 
