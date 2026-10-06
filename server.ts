@@ -208,40 +208,45 @@ function generateCurrentTelemetry(): TelemetryData {
   const solarGen = solarGenNominal;
 
   let powerConsumption = 340; // Base load
-  if (batteryDegradationFactor < 0.8) {
-    // Battery degradation cascade: higher internal resistance requires more current
-    powerConsumption += (1 - batteryDegradationFactor) * 80;
-  }
+  // Battery degradation: higher internal resistance (I²R) increases heat and load
+  powerConsumption += (1 - batteryDegradationFactor) * 95;
 
-  // Battery voltage & charge
+  // Battery voltage & charge — degradation factor suppresses available voltage
   const baseVoltage = inEclipse ? 25.4 : 29.8;
-  const batteryVoltage = Number((baseVoltage * (0.85 + 0.15 * batteryDegradationFactor) + (Math.random() * 0.15 - 0.075)).toFixed(2));
+  const batteryVoltage = Number((baseVoltage * (0.82 + 0.18 * batteryDegradationFactor) + (Math.random() * 0.15 - 0.075)).toFixed(2));
   const batteryCurrent = inEclipse ? Number((-14.2 / batteryDegradationFactor).toFixed(2)) : Number((12.5 * batteryDegradationFactor).toFixed(2));
   const stateOfCharge = Math.max(12, Math.min(99, Math.round((inEclipse ? 68 : 94) * batteryDegradationFactor)));
 
-  // Thermal values
+  // Thermal values — I²R heat generation coupled directly to battery degradation
   const baseThermal = inEclipse ? 18.5 : 31.0;
-  const batteryTemp = Number((baseThermal * thermalStressFactor + (1 - batteryDegradationFactor) * 14.5 + (Math.random() * 0.3)).toFixed(1));
-  const avionicsTemp = Number((28.0 * thermalStressFactor + (Math.random() * 0.2)).toFixed(1));
+  // I2R: heat ∝ (1 - degradationFactor)^2 scaled by current draw
+  const i2rHeat = Math.pow(1 - batteryDegradationFactor, 1.5) * 22.0;
+  const batteryTemp = Number((baseThermal * thermalStressFactor + i2rHeat + (Math.random() * 0.3)).toFixed(1));
+  const avionicsTemp = Number((28.0 * thermalStressFactor + i2rHeat * 0.3 + (Math.random() * 0.2)).toFixed(1));
   const radiatorTemp = Number(((inEclipse ? -12 : 24) * thermalStressFactor).toFixed(1));
 
-  // Comm values
-  const snr = Number((18.4 * commDegradationFactor - (batteryVoltage < 24 ? 2.5 : 0) + (Math.random() * 0.2 - 0.1)).toFixed(1));
-  const linkMargin = Number((6.8 * commDegradationFactor - (batteryVoltage < 24 ? 1.8 : 0)).toFixed(1));
-  const packetLoss = Number((Math.max(0.05, (1 - commDegradationFactor) * 18.5 + (batteryVoltage < 24 ? 4.2 : 0))).toFixed(2));
+  // Comm cascade — RF amplifier power limited by bus sag from battery degradation
+  // batteryDegradationFactor < 1 directly reduces available RF power → SNR/linkMargin degrade
+  const batteryCommCouplingFactor = Math.max(0, (batteryDegradationFactor - 0.5) / 0.5); // 0 at deg=0.5, 1 at deg=1.0
+  const effectiveCommFactor = commDegradationFactor * (0.65 + 0.35 * batteryCommCouplingFactor);
+  const snr = Number((18.4 * effectiveCommFactor + (Math.random() * 0.2 - 0.1)).toFixed(1));
+  const linkMargin = Number((6.8 * effectiveCommFactor).toFixed(1));
+  const packetLoss = Number((Math.max(0.05, (1 - effectiveCommFactor) * 22.0)).toFixed(2));
 
   // AOCS values
   const starTrackerFidelity = Number((98.5 * sensorErrorFactor).toFixed(1));
   const attitudeError = Number(((1 / sensorErrorFactor) * 1.8 + Math.random() * 0.2).toFixed(2));
 
-  // Payload
-  const sensorThroughput = batteryVoltage < 24.2 ? 45.0 : 180.0;
-  const bufferFill = Math.min(98, Math.round(34 + (1 - commDegradationFactor) * 45));
+  // Payload cascade — throughput limited by both comm backpressure and power bus sag
+  // At batteryDegradationFactor=0.35 (65% severity), throughput drops proportionally
+  const payloadPowerAvail = Math.max(0, batteryDegradationFactor - 0.3) / 0.7; // 0 at deg=0.3, 1 at deg=1.0
+  const sensorThroughput = Number((180.0 * payloadPowerAvail * effectiveCommFactor).toFixed(1));
+  const bufferFill = Math.min(98, Math.round(34 + (1 - effectiveCommFactor) * 55 + (1 - batteryDegradationFactor) * 15));
 
   // Determine subsystem statuses & scores
   const powerScore = Math.max(10, Math.round(stateOfCharge * 0.6 + (batteryVoltage / 30) * 40));
   const thermalScore = Math.max(15, Math.round(100 - Math.max(0, batteryTemp - 30) * 3.5));
-  const commScore = Math.max(8, Math.round(commDegradationFactor * 100 - packetLoss * 1.5));
+  const commScore = Math.max(8, Math.round(effectiveCommFactor * 100 - packetLoss * 1.5));
   const aocsScore = Math.max(20, Math.round(sensorErrorFactor * 100 - attitudeError * 3));
   const payloadScore = Math.max(12, Math.round((sensorThroughput / 180) * 60 + (100 - bufferFill) * 0.4));
 
@@ -283,7 +288,7 @@ function generateCurrentTelemetry(): TelemetryData {
         snr,
         linkMargin,
         packetLoss,
-        downlinkBandwidth: commDegradationFactor < 0.5 ? 45 : 150,
+        downlinkBandwidth: effectiveCommFactor < 0.75 ? Math.round(45 + effectiveCommFactor * 140) : 150,
         rfAmplifierTemp: Number((avionicsTemp + 8).toFixed(1)),
         healthScore: commScore,
         status: getStatus(commScore),
@@ -466,7 +471,7 @@ async function startServer() {
         batteryReserve: Math.max(6, Math.round(48 - sev * 0.65)),
         thermalStability: Math.max(22, Math.round(88 - sev * 0.8)),
         commAvailability: Math.max(18, Math.round(92 - sev * 0.9)),
-        payloadScienceOutput: 96,
+        payloadScienceOutput: Math.max(8, Math.round(100 - sev * 1.1)),
         recoveryTimeMinutes: 120,
         riskLevel: sev > 50 ? 'HIGH' : 'MEDIUM',
         failureTimeEstimateMinutes: Math.max(18, Math.round(95 - sev * 1.1)),
