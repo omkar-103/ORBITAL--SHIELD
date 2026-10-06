@@ -1,11 +1,11 @@
-# ORBITAL-SHIELD 🚀
+# ORBITAL-SHIELD 
 ### Autonomous Mission Resilience & Spacecraft Subsystem Digital Twin Platform
 *“Predict. Simulate. Protect.”*
 
 **Core Challenge Reference**: ST-09 — Mission Digital Twin for Predictive Fault Simulation  
 **Platform Version**: 2026.4 Production Build  
 
-> **🚀 DEPLOYMENT & DATABASE**: Read [`/DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) for full Vercel multi-services and Supabase PostgreSQL setup instructions.
+> **DEPLOYMENT & DATABASE**: Read [`/DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) for full Vercel multi-services and Supabase PostgreSQL setup instructions.
 
 ---
 
