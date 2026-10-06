@@ -16,7 +16,7 @@ export const FaultInjectionCenter: React.FC<FaultInjectionCenterProps> = ({
   isInjecting,
 }) => {
   const [selectedType, setSelectedType] = useState<'battery_degradation' | 'thermal_stress' | 'sensor_failure' | 'communication_loss'>('battery_degradation');
-  const [severity, setSeverity] = useState<number>(38);
+  const [severity, setSeverity] = useState<number>(65);
   const [duration, setDuration] = useState<number>(60);
   const [lastInjectedName, setLastInjectedName] = useState<string | null>(null);
 
@@ -29,7 +29,7 @@ export const FaultInjectionCenter: React.FC<FaultInjectionCenterProps> = ({
       color: 'text-amber-400',
       description: 'Internal resistance elevation causing voltage drop under load and accelerated thermal dissipation.',
       cascadingChain: 'Battery Storage → Power Bus → Heat Generation → Downlink RF Power',
-      defaultSeverity: 38,
+      defaultSeverity: 65,
     },
     {
       type: 'thermal_stress',

@@ -10,6 +10,7 @@ interface DemoScenarioControllerProps {
   onExecuteRecovery: () => Promise<void>;
   onResetNominal: () => Promise<void>;
   subsystems: SubsystemMap;
+  scenarios?: Array<{ id: string; survivalProbability: number; title: string }>;
 }
 
 export const DemoScenarioController: React.FC<DemoScenarioControllerProps> = ({
@@ -20,6 +21,7 @@ export const DemoScenarioController: React.FC<DemoScenarioControllerProps> = ({
   onExecuteRecovery,
   onResetNominal,
   subsystems,
+  scenarios = [],
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -75,7 +77,13 @@ export const DemoScenarioController: React.FC<DemoScenarioControllerProps> = ({
       step: 6,
       title: 'What-If Simulation Comparison',
       subsystem: 'SIMULATION LAB',
-      narration: 'Evaluating 4 parallel 90-minute operational branches. Baseline shows 42% survival risk; Safe Power Mode projects 98% survival probability.',
+      narration: (() => {
+        const baseline = scenarios.find(s => s.id === 'baseline');
+        const safePower = scenarios.find(s => s.id === 'scenario_a');
+        const bProb = baseline?.survivalProbability ?? 9;
+        const sProb = safePower?.survivalProbability ?? 91;
+        return `Evaluating 4 parallel 90-minute operational branches. Baseline shows ${bProb}% survival probability; Safe Power Mode projects ${sProb}% survival. Recovery window closes in 14 minutes.`;
+      })(),
       actionLabel: 'Execute Safe Power Mode',
       action: async () => {
         await onExecuteRecovery();
