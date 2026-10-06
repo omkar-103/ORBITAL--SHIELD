@@ -61,12 +61,15 @@ ORBITAL-SHIELD integrates:
 
 ## 3. Technology Stack
 
-- **Frontend Core**: React 19, TypeScript, Tailwind CSS v4, Motion
-- **3D Spatial Visualization**: Three.js (ACES Filmic Tone Mapping, PBR materials, custom geometry, raycasting)
-- **Backend Service**: 
-- **AI Intelligence**: 
+- **Frontend Core**: React 19, TypeScript, Vite 8, Tailwind CSS v4, Motion (Framer Motion)
+- **3D Digital Twin Visualization**: Three.js (r186) with ACES Filmic Tone Mapping, PBR materials, custom procedural geometry, raycasting subsystem inspector, and 2D SVG schematic fallback
+- **Backend Service & API**: Node.js, Express 4, TypeScript (`tsx` runtime), REST API endpoints (`/api/telemetry`, `/api/simulation`, `/api/faults`, `/api/ai/analysis`, `/api/incidents`)
+- **Physics & Digital Twin Engine**: Analytical LEO orbital mechanics (92-minute orbit, eclipse thermal flux), pure nominal twin prediction model, EWMA residual detector with hysteresis ($\alpha=0.30$), and cross-subsystem physical coupling equations
+- **Machine Learning & Python Stack**: Python 3.10+, Scikit-learn (`GradientBoostingRegressor`, `HistGradientBoostingClassifier`, `IsolationForest`), Pandas, NumPy, SciPy (`scipy.io.loadmat`), Joblib (trained on real NASA PCoE battery aging & ESA OPS-SAT CubeSat telemetry datasets)
+- **AI Intelligence & Reasoning**: Hybrid LLM architecture featuring Groq Cloud (`llama-3.3-70b-versatile`) and Google Gemini (`@google/genai` / `gemini-3.8-flash`) with deterministic rule-based aerospace expert system offline fallback
+- **Data & Persistence Layer**: PostgreSQL (`pg`) with automatic, zero-dependency in-memory state fallback for high-reliability offline hackathon environments
 - **Icons & UI Accents**: Lucide React
-- **Design System**: Aerospace Dark Theme, JetBrains Mono tabular numerals, Chakra Petch display typography
+- **Design System**: Aerospace Dark Operations Cockpit, JetBrains Mono tabular numerals, Chakra Petch tactical display typography
 
 ---
 
